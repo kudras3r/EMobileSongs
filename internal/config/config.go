@@ -41,10 +41,10 @@ func Load() *Config {
 	var serverConfig Server
 
 	if err := env.Set(&dbConfig); err != nil {
-		log.Fatal(err)
+		log.Fatal("cannot get db env vars: ", err)
 	}
 	if err := env.Set(&serverConfig); err != nil {
-		log.Fatal(err)
+		log.Fatal("cannot get server env vars: ", err)
 	}
 	config.LogLevel = os.Getenv("LOG_LEVEL")
 
