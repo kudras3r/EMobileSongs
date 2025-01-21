@@ -16,6 +16,9 @@ func New(level string) *logrus.Logger {
 	logger := logrus.New()
 
 	logger.SetOutput(os.Stdout)
+	logger.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+	})
 	switch level {
 	case DEBUG:
 		logger.SetLevel(logrus.DebugLevel)
