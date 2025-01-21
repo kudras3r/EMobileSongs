@@ -29,6 +29,8 @@ func main() {
 	if err := migrate.CreateSongsTable(db.DB); err != nil {
 		log.Fatal(err)
 	}
+	log.Info("make migration: create table songs")
+
 	// router (chi / default ?)
 	// run
 }
