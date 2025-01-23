@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/kudras3r/EMobile/internal/config"
 	"github.com/kudras3r/EMobile/internal/db/migrate"
 	"github.com/kudras3r/EMobile/internal/db/pg"
@@ -18,19 +20,29 @@ func main() {
 	log.Info("logger is up")
 
 	// storage
-	db, err := pg.New(config.DB)
+	storage, err := pg.New(config.DB)
 	if err != nil {
 		log.Fatal(err)
+	} else {
+		log.Info("database is up")
 	}
-	defer db.Close()
-	log.Info("db is up")
+	defer storage.CloseConnection()
 
 	// migrate
-	if err := migrate.CreateSongsTable(db.DB); err != nil {
+	if err := migrate.CreateSongsTable(storage.GetConnection()); err != nil {
 		log.Fatal(err)
+	} else {
+		log.Info("migration applied")
 	}
-	log.Info("make migration: create table songs")
 
+	// example
+	s, err := storage.GetSongs()
+	if err != nil {
+		log.Error(err)
+	}
+	for _, v := range s {
+		fmt.Println(v)
+	}
 	// router (chi / default ?)
 	// run
 }

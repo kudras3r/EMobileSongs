@@ -2,7 +2,6 @@ package migrate
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -13,12 +12,13 @@ import (
 func CreateSongsTable(db *sql.DB) error {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
-		return fmt.Errorf("cannot make migrations")
+		return err
 	}
-	m, err := migrate.NewWithDatabaseInstance("file://../migrations", "postgres", driver)
+	m, err := migrate.NewWithDatabaseInstance("file://../../internal/db/migrate/migrations", "postgres", driver)
 	if err != nil {
-		return fmt.Errorf("cannot make migrations")
+		return err
 	}
 	m.Up()
+
 	return nil
 }
