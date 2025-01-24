@@ -2,7 +2,11 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/kudras3r/EMobile/internal/api"
 	"github.com/kudras3r/EMobile/internal/config"
 	"github.com/kudras3r/EMobile/internal/db/migrate"
 	"github.com/kudras3r/EMobile/internal/db/pg"
@@ -35,26 +39,19 @@ func main() {
 		log.Info("migration applied")
 	}
 
-	// example
-	m := make(map[string]string)
-	m["title"] = "asd_song"
-	s, err := storage.GetSongs(2, 0, &m)
-	if err != nil {
-		log.Error(err)
-	}
-	for _, v := range s {
-		fmt.Println(v)
-	}
-	v, err := storage.GetSongText(1, 2, 1)
-	for _, k := range v {
-		fmt.Println(k)
+	// router
+	r := chi.NewRouter()
+	r.Use(middleware.AllowContentType("application/json"))
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.Logger)
+
+	api.RegisterRoutes(r, log, storage)
+
+	// run
+	log.Info(fmt.Sprintf("server is running on %s", config.Server.Address))
+	if err := http.ListenAndServe(config.Server.Address, r); err != nil {
+		log.Fatal(err)
 	}
 
-	// id, err := storage.DeleteSong(2)
-	// if err != nil {
-	// 	log.Error(err)
-	// }
-	// fmt.Println(id)
-	// router (chi / default ?)
-	// run
+	log.Info("gracefully shut down")
 }

@@ -5,8 +5,10 @@ go 1.22.4
 toolchain go1.22.11
 
 require (
+	github.com/ajg/form v1.5.1 // indirect
 	github.com/codingconcepts/env v0.0.0-20240618133406-5b0845441187 // indirect
 	github.com/go-chi/chi/v5 v5.2.0 // indirect
+	github.com/go-chi/render v1.0.3 // indirect
 	github.com/golang-migrate/migrate v3.5.4+incompatible // indirect
 	github.com/golang-migrate/migrate/v4 v4.18.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
