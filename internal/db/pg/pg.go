@@ -16,7 +16,12 @@ type Storage struct {
 }
 
 func New(config config.DB) (*Storage, error) {
-	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", config.Host, config.Port, config.User, config.Pass, config.Name)
+	connStr := fmt.Sprintf(
+		`host=%s port=%d user=%s 
+		password=%s dbname=%s sslmode=disable`,
+		config.Host, config.Port, config.User,
+		config.Pass, config.Name)
+
 	db, err := sqlx.Connect("postgres", connStr)
 	if err != nil {
 		return nil, err
@@ -32,13 +37,18 @@ func (s *Storage) GetConnection() *sql.DB {
 	return s.DB.DB
 }
 
-func (s *Storage) fetchSongs(limit, offset int, filters map[string]string) ([]models.Song, error) {
+func (s *Storage) GetSongs(limit, offset int, filters *map[string]string) ([]models.Song, error) {
+	/* for paginating we use offset-based query */
+
 	songs := make([]models.Song, limit)
 	var b strings.Builder
 
+	// take songs info
 	b.WriteString("SELECT * FROM songs WHERE TRUE")
-	for k, v := range filters {
-		b.WriteString(fmt.Sprintf(" AND \"%s\" = '%s'", k, v))
+	if filters != nil {
+		for k, v := range *filters {
+			b.WriteString(fmt.Sprintf(" AND \"%s\" = '%s'", k, v))
+		}
 	}
 
 	b.WriteString(fmt.Sprintf(" LIMIT %d OFFSET %d", limit, offset))
@@ -47,17 +57,60 @@ func (s *Storage) fetchSongs(limit, offset int, filters map[string]string) ([]mo
 		return nil, err
 	}
 
+	// take songs texts
+	for i := 0; i < len(songs); i++ {
+		verses := make([]string, songs[i].VersesCount)
+		query := fmt.Sprintf(
+			`SELECT lyrics 
+			 FROM verses 
+			 WHERE song_id = %d 
+			 ORDER BY num ASC`,
+			songs[i].ID)
+
+		if err := s.DB.Select(&verses, query); err != nil {
+			return nil, err
+		}
+		b.Reset()
+		for _, v := range verses {
+			b.WriteString(v)
+		}
+		songs[i].Text = b.String()
+	}
+
 	return songs, nil
 }
 
-func (s *Storage) GetSongs() ([]models.Song, error) {
-	// example
-	a := make(map[string]string)
-	a["group_performer"] = "asd"
-	sn, err := s.fetchSongs(2, 0, a)
-	if err != nil {
+func (s *Storage) GetSongText(id, limit, offset int) ([]models.Verse, error) {
+	verses := make([]models.Verse, limit)
+	query := fmt.Sprintf(
+		`SELECT * 
+		 FROM verses 
+		 WHERE song_id = %d 
+		 ORDER BY num ASC 
+		 LIMIT %d OFFSET %d`,
+		id, limit, offset)
+
+	if err := s.DB.Select(&verses, query); err != nil {
 		return nil, err
 	}
 
-	return sn, nil
+	return verses, nil
+}
+
+func (s *Storage) DeleteSong(id int) (int, error) {
+	query := fmt.Sprintf("DELETE FROM songs WHERE id = %d", id)
+	res, err := s.DB.Exec(query)
+	if err != nil {
+		return -1, err
+	}
+
+	rAffected, err := res.RowsAffected()
+	if err != nil {
+		return -1, err
+	}
+	if rAffected == 0 {
+		return -1, fmt.Errorf("no song found with id: %d", id)
+	}
+
+	return id, nil
 }

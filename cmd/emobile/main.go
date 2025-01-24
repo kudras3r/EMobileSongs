@@ -36,13 +36,25 @@ func main() {
 	}
 
 	// example
-	s, err := storage.GetSongs()
+	m := make(map[string]string)
+	m["title"] = "asd_song"
+	s, err := storage.GetSongs(2, 0, &m)
 	if err != nil {
 		log.Error(err)
 	}
 	for _, v := range s {
 		fmt.Println(v)
 	}
+	v, err := storage.GetSongText(1, 2, 1)
+	for _, k := range v {
+		fmt.Println(k)
+	}
+
+	// id, err := storage.DeleteSong(2)
+	// if err != nil {
+	// 	log.Error(err)
+	// }
+	// fmt.Println(id)
 	// router (chi / default ?)
 	// run
 }
