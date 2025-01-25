@@ -8,5 +8,6 @@ import (
 func RegisterRoutes(r *chi.Mux, log *logrus.Logger, s SongsGetter) {
 	r.Route("/songs", func(r chi.Router) {
 		r.Get("/", getSongs(log, s))
+		r.Get("/{id}/text", getText(log, s))
 	})
 }

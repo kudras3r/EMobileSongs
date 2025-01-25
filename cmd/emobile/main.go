@@ -10,7 +10,7 @@ import (
 	"github.com/kudras3r/EMobile/internal/config"
 	"github.com/kudras3r/EMobile/internal/db/migrate"
 	"github.com/kudras3r/EMobile/internal/db/pg"
-	"github.com/kudras3r/EMobile/internal/logger"
+	"github.com/kudras3r/EMobile/pkg/logger"
 )
 
 func main() {

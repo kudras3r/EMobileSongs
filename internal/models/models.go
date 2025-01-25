@@ -14,7 +14,7 @@ type Song struct {
 
 type Verse struct {
 	ID      int    `db:"id" json:"id"`
-	Song_id int    `db:"song_id" json:"song_id"`
-	Number  int    `db:"num" json:"number"`
+	Song_id int    `db:"song_id", json:"song_id"`
+	Number  int    `db:"num" json:"verse_number"`
 	Text    string `db:"lyrics" json:"text"`
 }
