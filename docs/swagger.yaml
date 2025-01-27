@@ -91,6 +91,38 @@ paths:
           schema:
             $ref: '#/definitions/songs.Response'
       summary: Get a list of songs
+      tags:
+      - songs
+    post:
+      consumes:
+      - application/json
+      description: Adds a new song to the system and sends a request to an external
+        API to get additional information about the song.
+      parameters:
+      - description: Song information
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/models.Song'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            $ref: '#/definitions/songs.Response'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/songs.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/songs.Response'
+      summary: Add a new song
+      tags:
+      - songs
   /songs/{id}:
     delete:
       consumes:
@@ -119,6 +151,8 @@ paths:
           schema:
             $ref: '#/definitions/songs.Response'
       summary: Delete a song by ID
+      tags:
+      - songs
     put:
       consumes:
       - application/json
@@ -152,6 +186,8 @@ paths:
           schema:
             $ref: '#/definitions/songs.Response'
       summary: Update a song by ID
+      tags:
+      - songs
   /songs/{id}/text:
     get:
       consumes:
@@ -186,6 +222,8 @@ paths:
           schema:
             $ref: '#/definitions/songs.Response'
       summary: Get the text of a song by ID
+      tags:
+      - songs
 securityDefinitions:
   BasicAuth:
     type: basic

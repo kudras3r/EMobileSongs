@@ -64,7 +64,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Logger)
 
-	api.RegisterRoutes(r, log, storage)
+	api.RegisterRoutes(r, log, storage, config)
 
 	// run
 	log.Info(fmt.Sprintf("server is running on %s", config.Server.Address))

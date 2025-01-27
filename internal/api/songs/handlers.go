@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/kudras3r/EMobile/internal/config"
 	"github.com/kudras3r/EMobile/internal/models"
 	"github.com/kudras3r/EMobile/pkg/str"
 	"github.com/sirupsen/logrus"
@@ -21,9 +23,10 @@ const MaxVersesLimit = 10000
 // @ID get-songs
 // @Accept json
 // @Produce json
+// @Tags songs
 // @Param limit query int false "Limit the number of songs returned" default(10)
 // @Param offset query int false "Offset for pagination" default(0)
-// @Param filter query string false "Filter fields for songs" 
+// @Param filter query string false "Filter fields for songs"
 // @Success 200 {object} Response
 // @Failure 400 {object} Response
 // @Router /songs [get]
@@ -84,6 +87,7 @@ func GetSongs(log *logrus.Logger, service Service) http.HandlerFunc {
 // @Description Update the details of a song using its ID
 // @ID update-song
 // @Accept json
+// @Tags songs
 // @Produce json
 // @Param id path int true "Song ID"
 // @Param song body models.Song true "Updated song data"
@@ -131,6 +135,7 @@ func UpdateSong(log *logrus.Logger, service Service) http.HandlerFunc {
 // @Description Delete a song from the database using its ID
 // @ID delete-song
 // @Accept json
+// @Tags songs
 // @Produce json
 // @Param id path int true "Song ID"
 // @Success 200 {object} Response
@@ -168,6 +173,7 @@ func DeleteSong(log *logrus.Logger, service Service) http.HandlerFunc {
 // @Summary Get the text of a song by ID
 // @Description Retrieve the lyrics of a song using its ID with optional pagination
 // @ID get-song-text
+// @Tags songs
 // @Accept json
 // @Produce json
 // @Param id path int true "Song ID"
@@ -224,6 +230,78 @@ func GetText(log *logrus.Logger, service Service) http.HandlerFunc {
 		render.JSON(w, r, Response{
 			Status: "ok",
 			Text:   verses,
+		})
+	}
+}
+
+// AddSong adds a new song
+// @Summary Add a new song
+// @Description Adds a new song to the system and sends a request to an external API to get additional information about the song.
+// @Tags songs
+// @Accept json
+// @Produce json
+// @Param song body models.Song true "Song information"
+// @Success 200 {object} Response "Successful response"
+// @Failure 400 {object} Response "Bad request"
+// @Failure 500 {object} Response "Internal server error"
+// @Router /songs [post]
+func AddSong(log *logrus.Logger, service Service, c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var song models.Song
+		apiURL := fmt.Sprintf("%s/info", c.HelperAPIHost)
+
+		if err := json.NewDecoder(r.Body).Decode(&song); err != nil {
+			log.Error(err)
+			renderError(http.StatusBadRequest, w, r, err.Error())
+
+			return
+		}
+		defer r.Body.Close()
+
+		reqURL, err := url.Parse(apiURL)
+		if err != nil {
+			log.Error(err)
+			renderError(http.StatusInternalServerError, w, r, err.Error())
+
+			return
+		}
+
+		query := reqURL.Query()
+		query.Set("group", song.Group)
+		query.Set("song", song.Song)
+		reqURL.RawQuery = query.Encode()
+
+		resp, err := http.Get(reqURL.String())
+		if err != nil {
+			log.Error(err)
+			renderError(http.StatusInternalServerError, w, r, err.Error())
+
+			return
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			log.Error(fmt.Errorf("%d status code from %s", resp.StatusCode, apiURL))
+			renderError(http.StatusInternalServerError, w, r, err.Error())
+
+			return
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&song); err != nil {
+			log.Error(err)
+			renderError(http.StatusInternalServerError, w, r, err.Error())
+
+			return
+		}
+
+		if err := service.AddSong(song); err != nil {
+			log.Error(err)
+			renderError(http.StatusInternalServerError, w, r, err.Error())
+
+			return
+		}
+
+		render.JSON(w, r, Response{
+			Status: "ok",
 		})
 	}
 }

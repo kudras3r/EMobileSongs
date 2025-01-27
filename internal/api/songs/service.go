@@ -9,6 +9,7 @@ type Service interface {
 	GetSongText(id, limit, offset int) ([]models.Verse, error)
 	UpdateSong(id int, updated models.Song) (int, error)
 	DeleteSong(id int) (int, error)
+	AddSong(models.Song) error
 }
 
 func ConvertFField(fField string) string {

@@ -33,6 +33,9 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "songs"
+                ],
                 "summary": "Get a list of songs",
                 "operationId": "get-songs",
                 "parameters": [
@@ -71,6 +74,50 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "description": "Adds a new song to the system and sends a request to an external API to get additional information about the song.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "songs"
+                ],
+                "summary": "Add a new song",
+                "parameters": [
+                    {
+                        "description": "Song information",
+                        "name": "song",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Song"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "$ref": "#/definitions/songs.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/songs.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/songs.Response"
+                        }
+                    }
+                }
             }
         },
         "/songs/{id}": {
@@ -81,6 +128,9 @@ const docTemplate = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "songs"
                 ],
                 "summary": "Update a song by ID",
                 "operationId": "update-song",
@@ -131,6 +181,9 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "songs"
+                ],
                 "summary": "Delete a song by ID",
                 "operationId": "delete-song",
                 "parameters": [
@@ -172,6 +225,9 @@ const docTemplate = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "songs"
                 ],
                 "summary": "Get the text of a song by ID",
                 "operationId": "get-song-text",
@@ -301,6 +357,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "Emobile songs API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {
