@@ -126,6 +126,23 @@ func (s *Storage) GetSongText(id, limit, offset int) ([]models.Verse, error) {
 	return verses, nil
 }
 
+func (s *Storage) AddSong(song models.Song) error {
+	var versesCount int
+	verses := strings.Split(song.Text, "\n\n")
+	versesCount = len(verses)
+
+	query := fmt.Sprintf(`INSERT INTO songs(title, group_performer, link, release_date, verses_count) 
+						  VALUES ('%s', '%s', '%s', %d);`,
+		song.Song, song.Group, song.Link, song.ReleaseDate.Format("2006-01-02"), versesCount)
+
+	_, err := s.DB.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *Storage) UpdateSong(id int, updated models.Song) (int, error) {
 	if !s.songExists(id) {
 		return -1, db.SongNotExists(id)

@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/kudras3r/EMobile/internal/config"
 	"github.com/kudras3r/EMobile/internal/models"
 	"github.com/kudras3r/EMobile/pkg/str"
 	"github.com/sirupsen/logrus"
@@ -27,7 +29,7 @@ func GetSongs(log *logrus.Logger, service Service) http.HandlerFunc {
 			if l, err := strconv.Atoi(limitStr); err == nil {
 				limit = l
 			} else {
-				log.Warn(err)
+				log.Error(err)
 				renderError(http.StatusBadRequest, w, r, err.Error())
 
 				return
@@ -37,7 +39,7 @@ func GetSongs(log *logrus.Logger, service Service) http.HandlerFunc {
 			if o, err := strconv.Atoi(offsetStr); err == nil {
 				offset = o
 			} else {
-				log.Warn(err)
+				log.Error(err)
 				renderError(http.StatusBadRequest, w, r, err.Error())
 
 				return
@@ -54,7 +56,7 @@ func GetSongs(log *logrus.Logger, service Service) http.HandlerFunc {
 
 		songs, err := service.GetSongs(limit, offset, &filters)
 		if err != nil {
-			log.Warn(err)
+			log.Error(err)
 			renderError(http.StatusBadRequest, w, r, err.Error())
 
 			return
@@ -74,14 +76,14 @@ func UpdateSong(log *logrus.Logger, service Service) http.HandlerFunc {
 
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
-			log.Warn(err)
+			log.Error(err)
 			renderError(http.StatusBadRequest, w, r, err.Error())
 
 			return
 		}
 
 		if err := json.NewDecoder(r.Body).Decode(&updated); err != nil {
-			log.Warn(err)
+			log.Error(err)
 			renderError(http.StatusBadRequest, w, r, err.Error())
 
 			return
@@ -108,7 +110,7 @@ func DeleteSong(log *logrus.Logger, service Service) http.HandlerFunc {
 
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
-			log.Warn(err)
+			log.Error(err)
 			renderError(http.StatusBadRequest, w, r, err.Error())
 
 			return
@@ -116,7 +118,7 @@ func DeleteSong(log *logrus.Logger, service Service) http.HandlerFunc {
 
 		deleted, err := service.DeleteSong(id)
 		if err != nil {
-			log.Warn(err)
+			log.Error(err)
 			renderError(http.StatusBadRequest, w, r, err.Error())
 
 			return
@@ -140,7 +142,7 @@ func GetText(log *logrus.Logger, service Service) http.HandlerFunc {
 
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
-			log.Warn(err)
+			log.Error(err)
 			renderError(http.StatusBadRequest, w, r, err.Error())
 
 			return
@@ -149,7 +151,7 @@ func GetText(log *logrus.Logger, service Service) http.HandlerFunc {
 			if l, err := strconv.Atoi(limitStr); err == nil {
 				limit = l
 			} else {
-				log.Warn(err)
+				log.Error(err)
 				renderError(http.StatusBadRequest, w, r, err.Error())
 
 				return
@@ -159,7 +161,7 @@ func GetText(log *logrus.Logger, service Service) http.HandlerFunc {
 			if o, err := strconv.Atoi(offsetStr); err == nil {
 				offset = o
 			} else {
-				log.Warn(err)
+				log.Error(err)
 				renderError(http.StatusBadRequest, w, r, err.Error())
 
 				return
@@ -168,7 +170,7 @@ func GetText(log *logrus.Logger, service Service) http.HandlerFunc {
 
 		verses, err := service.GetSongText(id, limit, offset)
 		if err != nil {
-			log.Warn(err)
+			log.Error(err)
 			renderError(http.StatusBadRequest, w, r, err.Error())
 
 			return
@@ -177,6 +179,67 @@ func GetText(log *logrus.Logger, service Service) http.HandlerFunc {
 		render.JSON(w, r, Response{
 			Status: "ok",
 			Text:   verses,
+		})
+	}
+}
+
+func AddSong(log *logrus.Logger, service Service, c *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var song models.Song
+		apiURL := fmt.Sprintf("%s/info", c.HelperAPIHost)
+
+		if err := json.NewDecoder(r.Body).Decode(&song); err != nil {
+			log.Error(err)
+			renderError(http.StatusBadRequest, w, r, err.Error())
+
+			return
+		}
+		defer r.Body.Close()
+
+		reqURL, err := url.Parse(apiURL)
+		if err != nil {
+			log.Error(err)
+			renderError(http.StatusInternalServerError, w, r, err.Error())
+
+			return
+		}
+
+		query := reqURL.Query()
+		query.Set("group", song.Group)
+		query.Set("song", song.Song)
+		reqURL.RawQuery = query.Encode()
+
+		resp, err := http.Get(reqURL.String())
+		if err != nil {
+			log.Error(err)
+			renderError(http.StatusInternalServerError, w, r, err.Error())
+
+			return
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			log.Error(fmt.Errorf("%d status code from %s", resp.StatusCode, apiURL))
+			renderError(http.StatusInternalServerError, w, r, err.Error())
+
+			return
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&song); err != nil {
+			log.Error(err)
+			renderError(http.StatusInternalServerError, w, r, err.Error())
+
+			return
+		}
+
+		if err := service.AddSong(song); err != nil {
+			log.Error(err)
+			renderError(http.StatusInternalServerError, w, r, err.Error())
+
+			return
+		}
+
+		render.JSON(w, r, Response{
+			Status: "ok",
 		})
 	}
 }

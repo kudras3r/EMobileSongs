@@ -11,9 +11,10 @@ import (
 )
 
 type Config struct {
-	DB       DB     `env:"DB"`
-	Server   Server `env:"SERVER"`
-	LogLevel string `env:"LOG_LEVEL"`
+	DB            DB     `env:"DB"`
+	Server        Server `env:"SERVER"`
+	LogLevel      string `env:"LOG_LEVEL"`
+	HelperAPIHost string `env:"HELP_API_HOST"`
 }
 
 type Server struct {
