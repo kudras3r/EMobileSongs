@@ -1,0 +1,192 @@
+basePath: /
+definitions:
+  models.Song:
+    properties:
+      group:
+        type: string
+      id:
+        type: integer
+      link:
+        type: string
+      releaseDate:
+        type: string
+      song:
+        type: string
+      text:
+        type: string
+      versesCount:
+        type: integer
+    type: object
+  models.Verse:
+    properties:
+      text:
+        type: string
+      verse_number:
+        type: integer
+    type: object
+  songs.Response:
+    properties:
+      error:
+        type: string
+      message:
+        type: string
+      songs:
+        items:
+          $ref: '#/definitions/models.Song'
+        type: array
+      status:
+        type: string
+      text:
+        items:
+          $ref: '#/definitions/models.Verse'
+        type: array
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Emobile songs API
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: EmobAPI
+  version: "1.0"
+paths:
+  /songs:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of songs with optional pagination and filtering
+      operationId: get-songs
+      parameters:
+      - default: 10
+        description: Limit the number of songs returned
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      - description: Filter fields for songs
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/songs.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/songs.Response'
+      summary: Get a list of songs
+  /songs/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a song from the database using its ID
+      operationId: delete-song
+      parameters:
+      - description: Song ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/songs.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/songs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/songs.Response'
+      summary: Delete a song by ID
+    put:
+      consumes:
+      - application/json
+      description: Update the details of a song using its ID
+      operationId: update-song
+      parameters:
+      - description: Song ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated song data
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/models.Song'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/songs.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/songs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/songs.Response'
+      summary: Update a song by ID
+  /songs/{id}/text:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the lyrics of a song using its ID with optional pagination
+      operationId: get-song-text
+      parameters:
+      - description: Song ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: 10
+        description: Limit the number of verses returned
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/songs.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/songs.Response'
+      summary: Get the text of a song by ID
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

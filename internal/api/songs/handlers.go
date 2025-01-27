@@ -15,6 +15,18 @@ import (
 
 const MaxVersesLimit = 10000
 
+// GetSongs get songs
+// @Summary Get a list of songs
+// @Description Retrieve a list of songs with optional pagination and filtering
+// @ID get-songs
+// @Accept json
+// @Produce json
+// @Param limit query int false "Limit the number of songs returned" default(10)
+// @Param offset query int false "Offset for pagination" default(0)
+// @Param filter query string false "Filter fields for songs" 
+// @Success 200 {object} Response
+// @Failure 400 {object} Response
+// @Router /songs [get]
 func GetSongs(log *logrus.Logger, service Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		limitStr := r.URL.Query().Get("limit")
@@ -67,6 +79,18 @@ func GetSongs(log *logrus.Logger, service Service) http.HandlerFunc {
 	}
 }
 
+// UpdateSong update song by id
+// @Summary Update a song by ID
+// @Description Update the details of a song using its ID
+// @ID update-song
+// @Accept json
+// @Produce json
+// @Param id path int true "Song ID"
+// @Param song body models.Song true "Updated song data"
+// @Success 200 {object} Response
+// @Failure 400 {object} Response
+// @Failure 500 {object} Response
+// @Router /songs/{id} [put]
 func UpdateSong(log *logrus.Logger, service Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var updated models.Song
@@ -102,6 +126,17 @@ func UpdateSong(log *logrus.Logger, service Service) http.HandlerFunc {
 	}
 }
 
+// DeleteSong godoc
+// @Summary Delete a song by ID
+// @Description Delete a song from the database using its ID
+// @ID delete-song
+// @Accept json
+// @Produce json
+// @Param id path int true "Song ID"
+// @Success 200 {object} Response
+// @Failure 400 {object} Response
+// @Failure 404 {object} Response
+// @Router /songs/{id} [delete]
 func DeleteSong(log *logrus.Logger, service Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := chi.URLParam(r, "id")
@@ -129,6 +164,18 @@ func DeleteSong(log *logrus.Logger, service Service) http.HandlerFunc {
 	}
 }
 
+// GetText get song text by id
+// @Summary Get the text of a song by ID
+// @Description Retrieve the lyrics of a song using its ID with optional pagination
+// @ID get-song-text
+// @Accept json
+// @Produce json
+// @Param id path int true "Song ID"
+// @Param limit query int false "Limit the number of verses returned" default(10)
+// @Param offset query int false "Offset for pagination" default(0)
+// @Success 200 {object} Response
+// @Failure 400 {object} Response
+// @Router /songs/{id}/text [get]
 func GetText(log *logrus.Logger, service Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := chi.URLParam(r, "id")
