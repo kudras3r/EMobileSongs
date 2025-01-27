@@ -47,9 +47,17 @@ func main() {
 
 	api.RegisterRoutes(r, log, storage, config)
 
+	server := &http.Server{
+		Addr:         config.Server.Address,
+		Handler:      r,
+		ReadTimeout:  config.Server.RWTimeout,
+		WriteTimeout: config.Server.RWTimeout,
+		IdleTimeout:  config.Server.IdleTimeout,
+	}
+
 	// run
 	log.Info(fmt.Sprintf("server is running on %s", config.Server.Address))
-	if err := http.ListenAndServe(config.Server.Address, r); err != nil {
+	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 
